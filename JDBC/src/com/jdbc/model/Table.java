@@ -1,6 +1,6 @@
-package com.db.model;
+package com.jdbc.model;
 
-import com.db.util.StringUtil;
+import com.jdbc.util.StringUtil;
 
 /**
  * Database Table

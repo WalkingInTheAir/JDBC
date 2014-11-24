@@ -1,4 +1,4 @@
-package com.db.util;
+package com.jdbc.util;
 
 /**
  * String Util

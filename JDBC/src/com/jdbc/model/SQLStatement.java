@@ -1,4 +1,4 @@
-package com.db.model;
+package com.jdbc.model;
 
 /**
  * SQL statement

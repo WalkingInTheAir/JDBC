@@ -1,4 +1,4 @@
-package com.db.model;
+package com.jdbc.model;
 
 /**
  * DML type: DELETE/INSERT/SELECT/UPDATE
