@@ -7,14 +7,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import com.jdbc.db.converter.IResultSetConverter;
 
 /**
  * 数据库操作工具类
- * 
- * @author Administrator 2014年12月3日
+ * @author Administrator 
+ * 2014年12月3日
  */
 public class DBManager {
 
@@ -180,7 +182,7 @@ public class DBManager {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
-			close(conn, pstmt, rs);
+			//close(conn, pstmt, null);
 		}
 
 		return rs;
@@ -194,5 +196,38 @@ public class DBManager {
 		return executeQuery(sql, null);
 	}
 	
+	/**
+	 * 将结果集转成JavaBean
+	 * @param rs
+	 * @param converter
+	 * @return
+	 */
+	public static <T> T toBean(ResultSet rs, IResultSetConverter<T> converter) {
+		T t = null;
+		try {
+			t = converter.conver(rs);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return t;
+	}
 
+	/**
+	 * 将结果集转成集合
+	 * @param rs
+	 * @param converter
+	 * @return
+	 */
+	public static <T> List<T> toList(ResultSet rs, IResultSetConverter<T> converter){
+		List<T> list = new ArrayList<T>();
+		try {
+			while(rs.next()){
+				list.add(toBean(rs, converter));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return list;
+	}
 }

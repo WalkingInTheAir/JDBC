@@ -2,10 +2,10 @@ package com.jdbc.db.converter;
 
 import java.sql.ResultSet;
 
-public class BaseResultSetConverter<E> implements IResultSetConverter<E>{
+public class BaseResultSetConverter<T> implements IResultSetConverter<T>{
 
 	@Override
-	public E conver(ResultSet rs) {
+	public T conver(ResultSet rs) {
 		return null;
 	}
 
