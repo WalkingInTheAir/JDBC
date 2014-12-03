@@ -230,4 +230,44 @@ public class DBManager {
 		
 		return list;
 	}
+	
+	
+	public static <T> Object queryToBean(String sql, Object[] params, IResultSetConverter<T> converter){
+		return query(true, sql, params, converter);
+	}
+	
+	private static <T> Object query(boolean isToBean, String sql, Object[] params, IResultSetConverter<T> converter){
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		try {
+			conn = getConnection();
+			pstmt = conn.prepareStatement(sql);
+			if(null != params){
+				int index = 1;
+				for (Object p : params) {
+					pstmt.setObject(index++, p);
+				}
+			}
+			rs = pstmt.executeQuery();
+			if(isToBean){
+				return converter.conver(rs);
+			}else{
+				List<T> list = new ArrayList<T>();
+				while(rs.next()){
+					list.add(converter.conver(rs));
+				}
+				return list;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			close(conn, pstmt, rs);
+		}
+
+		return null;
+	}
+	
+	
+	
 }
