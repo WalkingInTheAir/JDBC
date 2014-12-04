@@ -13,6 +13,9 @@ import org.junit.Test;
 
 
 
+
+
+import com.jdbc.db.converter.ConverterFactory;
 import com.jdbc.db.converter.IResultSetConverter;
 import com.jdbc.db.converter.impl.UserResultSetConverter;
 import com.jdbc.test.bean.User;
@@ -39,6 +42,11 @@ public class DBManagerTest {
 					}
 				});
 		System.out.println(password);
+		
+		String password2 = DBManager.queryToBean("select user_password from t_user where user_id = ?",
+				new Object[]{1}, 
+				ConverterFactory.getConverter(String.class));
+		System.out.println(password2);
 	}
 
 }
