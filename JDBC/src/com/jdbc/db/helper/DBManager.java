@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import com.jdbc.db.bean.Pagination;
+import com.jdbc.db.converter.ConverterFactory;
 import com.jdbc.db.converter.IResultSetConverter;
 
 /**
@@ -20,10 +22,10 @@ import com.jdbc.db.converter.IResultSetConverter;
  */
 public class DBManager {
 
-	private static String driverClassName; // 数据库驱动全限定类名
-	private static String url; // 数据库连接url
-	private static String username; // 数据库用户名
-	private static String password; // 数据库密码
+	private static String driverClassName; 	// 数据库驱动全限定类名
+	private static String url; 				// 数据库连接url
+	private static String username; 		// 数据库用户名
+	private static String password; 		// 数据库密码
 
 	static {
 		Properties pro = new Properties();
@@ -41,7 +43,6 @@ public class DBManager {
 
 	/**
 	 * 获取数据库连接
-	 * 
 	 * @return
 	 */
 	public static Connection getConnection() {
@@ -61,13 +62,9 @@ public class DBManager {
 
 	/**
 	 * 关闭资源
-	 * 
-	 * @param conn
-	 *            数据库连接对象
-	 * @param stmt
-	 *            事务集对象
-	 * @param rs
-	 *            结果集对象
+	 * @param conn 数据库连接对象
+	 * @param stmt 事务集对象
+	 * @param rs   结果集对象
 	 */
 	public static void close(Connection conn, Statement stmt, ResultSet rs) {
 		closeRs(rs);
@@ -77,7 +74,6 @@ public class DBManager {
 
 	/**
 	 * 关闭数据库连接对象
-	 * 
 	 * @param conn
 	 */
 	public static void closeConn(Connection conn) {
@@ -92,7 +88,6 @@ public class DBManager {
 
 	/**
 	 * 关闭事务集对象
-	 * 
 	 * @param stmt
 	 */
 	public static void closeStmt(Statement stmt) {
@@ -107,7 +102,6 @@ public class DBManager {
 
 	/**
 	 * 关闭结果集对象
-	 * 
 	 * @param rs
 	 */
 	public static void closeRs(ResultSet rs) {
@@ -122,7 +116,6 @@ public class DBManager {
 
 	/**
 	 * insert/update/delete 操作通用方法
-	 * 
 	 * @param sql
 	 * @param params
 	 * @return
@@ -151,7 +144,7 @@ public class DBManager {
 	}
 	
 	/**
-	 * 
+	 * 单记录查询
 	 * @param sql
 	 * @param params
 	 * @param converter
@@ -184,7 +177,7 @@ public class DBManager {
 	}
 	
 	/**
-	 * 
+	 * 单记录无动态参数查询
 	 * @param sql
 	 * @param converter
 	 * @return
@@ -194,7 +187,7 @@ public class DBManager {
 	}
 	
 	/**
-	 * 
+	 * 多记录查询
 	 * @param sql
 	 * @param params
 	 * @param converter
@@ -227,7 +220,57 @@ public class DBManager {
 		return list;
 	}
 	
+	/**
+	 * 多记录无动态参数查询
+	 * @param sql
+	 * @param converter
+	 * @return
+	 */
 	public static <T> List<T> queryToList(String sql, IResultSetConverter<T> converter){
 		return queryToList(sql, null, converter);
+	}
+	
+	/**
+	 * 分页查询
+	 * @param sql
+	 * @param params
+	 * @param converter
+	 * @param page
+	 * @return
+	 */
+	public static <T> Pagination<T> queryByPagination(String sql, Object[] params,
+			IResultSetConverter<T> converter, Pagination<T> page) {
+		String totalSql = "SELECT COUNT(*) FROM (" + sql + ") AS a";
+		int totalRecords = queryToBean(totalSql, params, ConverterFactory.getConverter(Integer.class));
+		int totalPage = (totalRecords-1)/page.getPageSize()+1;
+		page.setTotalPage(totalPage);
+		sql += " LIMIT ?, ?";
+		Object[] newParams = null;
+		int currRecord = page.getCurrPage()*page.getPageSize();
+		int endRecord = currRecord + page.getPageSize();
+		if(null == params){
+			newParams = new Object[]{currRecord, endRecord};
+		}else{
+			int len = params.length;
+			newParams = new Object[len+2];
+			System.arraycopy(params, 0, newParams, 0, len);
+			newParams[len] = currRecord;
+			newParams[len+1] = endRecord;
+		}
+		page.setContent(queryToList(sql, newParams, converter));
+		page.setCurrPage(page.getCurrPage()+1);
+		return page;
+	}
+	
+	/**
+	 * 无动态参数分页查询
+	 * @param sql
+	 * @param converter
+	 * @param page
+	 * @return
+	 */
+	public static <T> Pagination<T> queryByPagination(String sql,
+			IResultSetConverter<T> converter, Pagination<T> page) {
+		return queryByPagination(sql, converter, page);
 	}
 }

@@ -3,41 +3,14 @@ package com.jdbc.db.converter;
 import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
+/**
+ * ResultSetConverter 生成器工厂
+ * @author Administrator
+ *
+ */
 public class ConverterFactory {
-
-	public static IResultSetConverter<String> getStringConverter() {
-
-		return new IResultSetConverter<String>() {
-			@Override
-			public String conver(ResultSet rs) throws SQLException {
-				String str = null;
-				while (rs.next()) {
-					str = rs.getString(1);
-					break;
-				}
-				return str;
-			}
-		};
-	}
-
-	public static IResultSetConverter<Long> getLongConverter() {
-		return new IResultSetConverter<Long>() {
-
-			@Override
-			public Long conver(ResultSet rs) throws SQLException {
-				Long lo = null;
-				while(rs.next()){
-					lo = rs.getLong(1);
-					break;
-				}
-				return lo;
-			}
-		};
-	}
-	
 	/**
-	 * 
+	 * 通用单列Converter
 	 * @param cls
 	 * @return
 	 */
@@ -65,7 +38,7 @@ public class ConverterFactory {
 	
 	
 	/**
-	 * build function name: getXXX
+	 * 构建方法名称: getXXX
 	 * @param cls
 	 * @return
 	 */

@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.jdbc.db.bean.Pagination;
 import com.jdbc.db.converter.ConverterFactory;
 import com.jdbc.db.converter.IResultSetConverter;
 import com.jdbc.db.converter.impl.UserResultSetConverter;
@@ -66,5 +67,33 @@ public class DBManagerTest {
 	public void testDelete(){
 		int flag = DBManager.executeUpdate("delete from user where id=20", null);
 		System.out.println(flag);
+	}
+	
+	@Test
+	public void testPagination1(){
+		Pagination<User> page = new Pagination<User>(3);
+		page = DBManager.queryByPagination("select * from user where id>2 order by id",
+					null, new UserResultSetConverter(), page);
+		
+		System.out.println("current page: " + page.getCurrPage());
+		System.out.println("total page: " + page.getTotalPage());
+		List<User> us = page.getContent();
+		for(User u : us){
+			System.out.println(u);
+		}
+	}
+	
+	@Test
+	public void testPagination2(){
+		Pagination<User> page = new Pagination<User>(3);
+		page = DBManager.queryByPagination("select * from user where id>? order by id",
+					new Object[]{2}, new UserResultSetConverter(), page);
+		
+		System.out.println("current page: " + page.getCurrPage());
+		System.out.println("total page: " + page.getTotalPage());
+		List<User> us = page.getContent();
+		for(User u : us){
+			System.out.println(u);
+		}
 	}
 }
