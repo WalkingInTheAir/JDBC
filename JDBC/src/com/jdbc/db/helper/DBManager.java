@@ -151,21 +151,14 @@ public class DBManager {
 	}
 	
 	/**
-	 * insert/update/delete 操作通用方法，无需指定参数
-	 * @param sql
-	 * @return
-	 */
-	public static int executeUpdate(String sql){
-		return executeUpdate(sql, null);
-	}
-	
-	/**
-	 * 查询通用方法
+	 * 
 	 * @param sql
 	 * @param params
+	 * @param converter
 	 * @return
 	 */
-	public static ResultSet executeQuery(String sql, Object[] params) {
+	public static <T> T queryToBean(String sql, Object[] params, IResultSetConverter<T> converter){
+		T t = null;
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -179,95 +172,62 @@ public class DBManager {
 				}
 			}
 			rs = pstmt.executeQuery();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			//close(conn, pstmt, null);
-		}
-
-		return rs;
-	}
-	/**
-	 * 查询通用方法，无需参数
-	 * @param sql
-	 * @return
-	 */
-	public static ResultSet executeQuery(String sql) {
-		return executeQuery(sql, null);
-	}
-	
-	/**
-	 * 将结果集转成JavaBean
-	 * @param rs
-	 * @param converter
-	 * @return
-	 */
-	public static <T> T toBean(ResultSet rs, IResultSetConverter<T> converter) {
-		T t = null;
-		try {
 			t = converter.conver(rs);
 		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return t;
-	}
-
-	/**
-	 * 将结果集转成集合
-	 * @param rs
-	 * @param converter
-	 * @return
-	 */
-	public static <T> List<T> toList(ResultSet rs, IResultSetConverter<T> converter){
-		List<T> list = new ArrayList<T>();
-		try {
-			while(rs.next()){
-				list.add(toBean(rs, converter));
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		
-		return list;
-	}
-	
-	
-	public static <T> Object queryToBean(String sql, Object[] params, IResultSetConverter<T> converter){
-		return query(true, sql, params, converter);
-	}
-	
-	private static <T> Object query(boolean isToBean, String sql, Object[] params, IResultSetConverter<T> converter){
-		Connection conn = null;
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-		try {
-			conn = getConnection();
-			pstmt = conn.prepareStatement(sql);
-			if(null != params){
-				int index = 1;
-				for (Object p : params) {
-					pstmt.setObject(index++, p);
-				}
-			}
-			rs = pstmt.executeQuery();
-			if(isToBean){
-				return converter.conver(rs);
-			}else{
-				List<T> list = new ArrayList<T>();
-				while(rs.next()){
-					list.add(converter.conver(rs));
-				}
-				return list;
-			}
-		} catch (SQLException e) {
+			t = null;
 			e.printStackTrace();
 		} finally {
 			close(conn, pstmt, rs);
 		}
 
-		return null;
+		return t;
 	}
 	
+	/**
+	 * 
+	 * @param sql
+	 * @param converter
+	 * @return
+	 */
+	public static <T> T queryToBean(String sql, IResultSetConverter<T> converter){
+		return queryToBean(sql, null, converter);
+	}
 	
+	/**
+	 * 
+	 * @param sql
+	 * @param params
+	 * @param converter
+	 * @return
+	 */
+	public static <T> List<T> queryToList(String sql, Object[] params, IResultSetConverter<T> converter){
+		List<T> list = new ArrayList<T>();
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		try {
+			conn = getConnection();
+			pstmt = conn.prepareStatement(sql);
+			if (null != params) {
+				int index = 1;
+				for (Object p : params) {
+					pstmt.setObject(index++, p);
+				}
+			}
+			rs = pstmt.executeQuery();
+			while (rs.next()) {
+				list.add(converter.conver(rs));
+			}
+		} catch (SQLException e) {
+			list = null;
+			e.printStackTrace();
+		} finally {
+			close(conn, pstmt, rs);
+		}
+		return list;
+	}
 	
+	public static <T> List<T> queryToList(String sql, IResultSetConverter<T> converter){
+		return queryToList(sql, null, converter);
+	}
 }
