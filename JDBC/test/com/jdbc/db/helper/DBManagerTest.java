@@ -1,9 +1,8 @@
 package com.jdbc.db.helper;
 
-import static org.junit.Assert.*;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
@@ -17,7 +16,7 @@ import com.jdbc.test.bean.User;
 public class DBManagerTest {
 
 	@Test
-	public void testList() {
+	public void testList() throws Exception {
 		List<User> us = DBManager.queryToList(
 				"select * from user", 
 				null,
@@ -28,7 +27,7 @@ public class DBManagerTest {
 	}
 
 	@Test
-	public void testBean() {
+	public void testBean() throws Exception {
 		String password = DBManager.queryToBean(
 				"select password from user where id = ?",
 				new Object[] { 10 }, 
@@ -46,7 +45,7 @@ public class DBManagerTest {
 	}
 
 	@Test
-	public void testSingleColumn() {
+	public void testSingleColumn() throws Exception {
 		String password = DBManager
 				.queryToBean(
 						"select password from user where id = ?",
@@ -56,7 +55,7 @@ public class DBManagerTest {
 	}
 
 	@Test
-	public void testInsert(){
+	public void testInsert() throws SQLException{
 		int flag = DBManager.executeUpdate(
 				"INSERT INTO USER VALUES(?,?,?)", 
 				new Object[]{20, "张三", "12121212"});
@@ -64,13 +63,13 @@ public class DBManagerTest {
 	}
 	
 	@Test
-	public void testDelete(){
+	public void testDelete() throws SQLException{
 		int flag = DBManager.executeUpdate("delete from user where id=20", null);
 		System.out.println(flag);
 	}
 	
 	@Test
-	public void testPagination1(){
+	public void testPagination1() throws Exception{
 		Pagination<User> page = new Pagination<User>(3);
 		page = DBManager.queryByPagination("select * from user where id>2 order by id",
 					null, new UserResultSetConverter(), page);
@@ -84,7 +83,7 @@ public class DBManagerTest {
 	}
 	
 	@Test
-	public void testPagination2(){
+	public void testPagination2() throws Exception{
 		Pagination<User> page = new Pagination<User>(3);
 		page = DBManager.queryByPagination("select * from user where id>? order by id",
 					new Object[]{2}, new UserResultSetConverter(), page);
@@ -95,5 +94,48 @@ public class DBManagerTest {
 		for(User u : us){
 			System.out.println(u);
 		}
+	}
+	
+	@Test
+	public void testExecuteBatch1() throws SQLException{
+		String sql = "insert into user values(null, 'abab', '1212')";
+		DBManager.executeBatch(sql, null);
+	}
+	@Test
+	public void testExecuteBatch2() throws SQLException{
+		String sql = "insert into user values(null, ?, ?)";
+		List<Object[]> list = new ArrayList<Object[]>();
+		for(int i=0; i<50; i++){
+			list.add(new Object[]{"a"+i, "b"+i});
+		}
+		
+		DBManager.executeBatch(sql, list);
+		
+	}
+	
+	@Test 
+	public void testExecuteBatch3() throws SQLException{
+		String sql = "UPDATE USER SET name=?, password=? WHERE ID=?";
+		List<Object[]> list = new ArrayList<Object[]>();
+		
+		for(int i=1; i<30; i++){
+			list.add(new Object[]{"c"+i, "d"+i, i});
+		}
+		DBManager.executeBatch(sql, list);
+		
+	}
+	
+	@Test
+	public void testExecuteBatch4() throws SQLException {
+		String[] sqls = { "DELETE FROM USER WHERE ID = 2",
+				"UPDATE USER SET NAME = ? WHERE ID=?",
+				"INSERT INTO USER VALUES(NULL,?,?)" };
+
+		List<Object[]> list = new ArrayList<Object[]>();
+		list.add(null);
+		list.add(new Object[] { "aaaaaaa", 3 });
+		list.add(new Object[] { "张三", "0000000" });
+
+		DBManager.executeBatch(sqls, list);
 	}
 }

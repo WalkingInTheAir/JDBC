@@ -119,13 +119,18 @@ public class DBManager {
 	 * @param sql
 	 * @param params
 	 * @return
+	 * @throws SQLException 
 	 */
-	public static int executeUpdate(String sql, Object[] params) {
+	public static int executeUpdate(String sql, Object[] params) throws SQLException {
+		if(null == sql || sql.trim().length() == 0){
+			return -1;
+		}
 		int result = -1;
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		try {
 			conn = getConnection();
+			conn.setAutoCommit(false);
 			pstmt = conn.prepareStatement(sql);
 			if(null != params){
 				int index = 1;
@@ -134,8 +139,12 @@ public class DBManager {
 				}
 			}
 			result = pstmt.executeUpdate();
+			conn.commit();
+			System.out.println("******SQL LOG******" + sql);
 		} catch (SQLException e) {
-			e.printStackTrace();
+			System.out.println("******SQL LOG****** ROLLBACK");
+			conn.rollback();
+			throw e;
 		} finally {
 			close(conn, pstmt, null);
 		}
@@ -144,13 +153,109 @@ public class DBManager {
 	}
 	
 	/**
+	 * 批量insert/update/delete: sql语句一样，参数不一样
+	 * @param sql
+	 * @param params
+	 * @return
+	 * @throws SQLException
+	 */
+	public static boolean executeBatch(String sql, List<Object[]> params) throws SQLException{
+		if(null == sql || sql.trim().length()==0){
+			return  false;
+		}
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		try {
+			conn = getConnection();
+			pstmt = conn.prepareStatement(sql);
+			conn.setAutoCommit(false);
+			if(null != params){
+				for(int i=0, len=params.size(); i<len; i++){
+					int index = 1;
+					Object[] os = params.get(i);
+					for (Object o : os) {
+						pstmt.setObject(index++, o);
+					}
+					pstmt.addBatch();
+					if((i+1)%30 == 0){			//防止内存溢出
+						pstmt.executeBatch();
+						pstmt.clearBatch();
+					}
+				}
+			}else{
+				pstmt.addBatch();
+			}
+			pstmt.executeBatch();
+			conn.commit();
+			System.out.println("******SQL LOG******" + params.size() + " times: " + sql);
+		} catch (SQLException e) {
+			System.out.println("******SQL LOG****** ROLLBACK");
+			conn.rollback();
+			throw e;
+		} finally {
+			close(conn, pstmt, null);
+		}
+		return true;
+	}
+	
+	/**
+	 * 批量insert/update/delete: sql语句不一样
+	 * @param sqls
+	 * @param params
+	 * @return
+	 * @throws SQLException
+	 */
+	public static boolean executeBatch(String[] sqls, List<Object[]> params) throws SQLException{
+		if(null == sqls){
+			return false;
+		}
+		int len = sqls.length;
+		if(len == 0 || params.size() != len){
+			return false;
+		}
+		
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		try {
+			conn = getConnection();
+			conn.setAutoCommit(false);
+			for(int i=0; i<len; i++){
+				String sql = sqls[i];
+				pstmt = conn.prepareStatement(sql);
+				Object[] os = params.get(i);
+				if(null != os){
+					int index = 1;
+					for (Object o : os) {
+						pstmt.setObject(index++, o);
+					}
+				}
+				pstmt.executeUpdate();
+			}
+			conn.commit();
+			for(int i=0; i<len; i++){
+				System.out.println("******SQL LOG******" + sqls[i]);
+			}
+		} catch (SQLException e) {
+			System.out.println("******SQL LOG****** ROLLBACK");
+			conn.rollback();
+			throw e;
+		} finally {
+			close(conn, pstmt, null);
+		}
+		return true;
+	}
+	/**
 	 * 单记录查询
 	 * @param sql
 	 * @param params
 	 * @param converter
 	 * @return
+	 * @throws Exception 
 	 */
-	public static <T> T queryToBean(String sql, Object[] params, IResultSetConverter<T> converter){
+	public static <T> T queryToBean(String sql, Object[] params, IResultSetConverter<T> converter) throws Exception{
+		if (null == sql || sql.trim().length() == 0 || null == converter) {
+			return null;
+		}
 		T t = null;
 		Connection conn = null;
 		PreparedStatement pstmt = null;
@@ -165,10 +270,15 @@ public class DBManager {
 				}
 			}
 			rs = pstmt.executeQuery();
-			t = converter.conver(rs);
+			while(rs.next()){
+				t = converter.conver(rs);
+				break;
+			}
+			System.out.println("******SQL LOG******" + sql);
 		} catch (SQLException e) {
+			System.out.println("******SQL LOG****** EXCEPTION");
 			t = null;
-			e.printStackTrace();
+			throw e;
 		} finally {
 			close(conn, pstmt, rs);
 		}
@@ -181,8 +291,9 @@ public class DBManager {
 	 * @param sql
 	 * @param converter
 	 * @return
+	 * @throws Exception 
 	 */
-	public static <T> T queryToBean(String sql, IResultSetConverter<T> converter){
+	public static <T> T queryToBean(String sql, IResultSetConverter<T> converter) throws Exception{
 		return queryToBean(sql, null, converter);
 	}
 	
@@ -192,8 +303,12 @@ public class DBManager {
 	 * @param params
 	 * @param converter
 	 * @return
+	 * @throws Exception 
 	 */
-	public static <T> List<T> queryToList(String sql, Object[] params, IResultSetConverter<T> converter){
+	public static <T> List<T> queryToList(String sql, Object[] params, IResultSetConverter<T> converter) throws Exception{
+		if (null == sql || sql.trim().length() == 0 || null == converter) {
+			return null;
+		}
 		List<T> list = new ArrayList<T>();
 		Connection conn = null;
 		PreparedStatement pstmt = null;
@@ -211,9 +326,11 @@ public class DBManager {
 			while (rs.next()) {
 				list.add(converter.conver(rs));
 			}
+			System.out.println("******SQL LOG******" + sql);
 		} catch (SQLException e) {
+			System.out.println("******SQL LOG****** EXCEPTION");
 			list = null;
-			e.printStackTrace();
+			throw e;
 		} finally {
 			close(conn, pstmt, rs);
 		}
@@ -225,8 +342,9 @@ public class DBManager {
 	 * @param sql
 	 * @param converter
 	 * @return
+	 * @throws Exception 
 	 */
-	public static <T> List<T> queryToList(String sql, IResultSetConverter<T> converter){
+	public static <T> List<T> queryToList(String sql, IResultSetConverter<T> converter) throws Exception{
 		return queryToList(sql, null, converter);
 	}
 	
@@ -237,9 +355,13 @@ public class DBManager {
 	 * @param converter
 	 * @param page
 	 * @return
+	 * @throws Exception 
 	 */
 	public static <T> Pagination<T> queryByPagination(String sql, Object[] params,
-			IResultSetConverter<T> converter, Pagination<T> page) {
+			IResultSetConverter<T> converter, Pagination<T> page) throws Exception {
+		if (null == sql || sql.trim().length() == 0 || null == converter) {
+			return null;
+		}
 		String totalSql = "SELECT COUNT(*) FROM (" + sql + ") AS a";
 		int totalRecords = queryToBean(totalSql, params, ConverterFactory.getConverter(Integer.class));
 		int totalPage = (totalRecords-1)/page.getPageSize()+1;
@@ -273,4 +395,5 @@ public class DBManager {
 			IResultSetConverter<T> converter, Pagination<T> page) {
 		return queryByPagination(sql, converter, page);
 	}
+	
 }
