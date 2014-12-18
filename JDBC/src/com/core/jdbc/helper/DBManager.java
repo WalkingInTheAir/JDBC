@@ -1,4 +1,4 @@
-package com.jdbc.db.helper;
+package com.core.jdbc.helper;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -11,9 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import com.jdbc.db.bean.Pagination;
-import com.jdbc.db.converter.ConverterFactory;
-import com.jdbc.db.converter.IResultSetConverter;
+import com.core.jdbc.bean.Pagination;
+import com.core.jdbc.converter.ConverterFactory;
+import com.core.jdbc.converter.IResultSetConverter;
 
 /**
  * 数据库操作工具类

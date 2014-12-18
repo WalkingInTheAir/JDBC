@@ -1,4 +1,4 @@
-package com.jdbc.test.bean;
+package com.core.jdbc.bean;
 
 public class User {
 	private Long id;

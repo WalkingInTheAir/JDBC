@@ -1,4 +1,4 @@
-package com.jdbc.db.bean;
+package com.core.jdbc.bean;
 
 import java.util.List;
 /**

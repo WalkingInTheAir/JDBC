@@ -1,4 +1,4 @@
-package com.jdbc.db.helper;
+package com.core.jdbc.helper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -7,11 +7,12 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.jdbc.db.bean.Pagination;
-import com.jdbc.db.converter.ConverterFactory;
-import com.jdbc.db.converter.IResultSetConverter;
-import com.jdbc.db.converter.impl.UserResultSetConverter;
-import com.jdbc.test.bean.User;
+import com.core.jdbc.bean.Pagination;
+import com.core.jdbc.bean.User;
+import com.core.jdbc.converter.ConverterFactory;
+import com.core.jdbc.converter.IResultSetConverter;
+import com.core.jdbc.converter.impl.UserResultSetConverter;
+import com.core.jdbc.helper.DBManager;
 
 public class DBManagerTest {
 

@@ -1,9 +1,9 @@
-package com.jdbc.db.converter.impl;
+package com.core.jdbc.converter.impl;
 
 import java.sql.ResultSet;
 
-import com.jdbc.db.converter.IResultSetConverter;
-import com.jdbc.test.bean.User;
+import com.core.jdbc.bean.User;
+import com.core.jdbc.converter.IResultSetConverter;
 
 public class UserResultSetConverter implements IResultSetConverter<User> {
 

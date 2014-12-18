@@ -1,4 +1,4 @@
-package com.jdbc.db.converter;
+package com.core.jdbc.converter;
 
 import java.sql.ResultSet;
 
