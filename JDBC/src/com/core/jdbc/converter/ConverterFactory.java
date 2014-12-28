@@ -23,10 +23,7 @@ public class ConverterFactory {
 				try {
 					Method m = rs.getClass().getMethod(getMethodName(cls),
 							int.class);
-					while (rs.next()) {
-						t = (T) m.invoke(rs, 1);
-						break;
-					}
+					t = (T) m.invoke(rs, 1);
 				} catch (Exception e) {
 					t = null;
 					e.printStackTrace();
