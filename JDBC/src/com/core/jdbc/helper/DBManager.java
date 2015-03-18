@@ -11,7 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import com.core.jdbc.bean.Pagination;
+import com.core.jdbc.bean.PageContent;
+import com.core.jdbc.bean.PageInfo;
 import com.core.jdbc.converter.ConverterFactory;
 import com.core.jdbc.converter.IResultSetConverter;
 
@@ -274,7 +275,7 @@ public class DBManager {
 				t = converter.conver(rs);
 				break;
 			}
-			System.out.println("******SQL LOG******" + sql);
+			//System.out.println("******SQL LOG******" + sql);
 		} catch (SQLException e) {
 			System.out.println("******SQL LOG****** EXCEPTION");
 			t = null;
@@ -357,31 +358,41 @@ public class DBManager {
 	 * @return
 	 * @throws Exception 
 	 */
-	public static <T> Pagination<T> queryByPagination(String sql, Object[] params,
-			IResultSetConverter<T> converter, Pagination<T> page) throws Exception {
+	public static <T> PageContent<T> queryByPagination(String sql, Object[] params,
+			IResultSetConverter<T> converter, PageInfo page) throws Exception {
 		if (null == sql || sql.trim().length() == 0 || null == converter) {
 			return null;
 		}
+		PageContent<T> content = new PageContent<T>();
 		String totalSql = "SELECT COUNT(*) FROM (" + sql + ") AS a";
 		int totalRecords = queryToBean(totalSql, params, ConverterFactory.getConverter(Integer.class));
-		int totalPage = (totalRecords-1)/page.getPageSize()+1;
+		if(null == page){
+			page = new PageInfo();
+		}
+		int totalPage = totalRecords % page.getPageSize() == 0 ? 
+				totalRecords / page.getPageSize() : 
+				totalRecords / page.getPageSize() + 1;
 		page.setTotalPage(totalPage);
 		sql += " LIMIT ?, ?";
+		if(page.getCurrPage() > totalPage){
+			page.setCurrPage(totalPage);
+		}
 		Object[] newParams = null;
-		int currRecord = page.getCurrPage()*page.getPageSize();
-		int endRecord = currRecord + page.getPageSize();
+		int currRecordIndex = (page.getCurrPage() - 1)*page.getPageSize();
+		int endRecordIndex = currRecordIndex + page.getPageSize();
 		if(null == params){
-			newParams = new Object[]{currRecord, endRecord};
+			newParams = new Object[]{currRecordIndex, endRecordIndex};
 		}else{
 			int len = params.length;
 			newParams = new Object[len+2];
 			System.arraycopy(params, 0, newParams, 0, len);
-			newParams[len] = currRecord;
-			newParams[len+1] = endRecord;
+			newParams[len] = currRecordIndex;
+			newParams[len+1] = endRecordIndex;
 		}
-		page.setContent(queryToList(sql, newParams, converter));
-		page.setCurrPage(page.getCurrPage()+1);
-		return page;
+		content.setContent(queryToList(sql, newParams, converter));
+		page.setCurrPage(page.getCurrPage());
+		content.setPage(page);
+		return content;
 	}
 	
 	/**
@@ -390,10 +401,11 @@ public class DBManager {
 	 * @param converter
 	 * @param page
 	 * @return
+	 * @throws Exception 
 	 */
-	public static <T> Pagination<T> queryByPagination(String sql,
-			IResultSetConverter<T> converter, Pagination<T> page) {
-		return queryByPagination(sql, converter, page);
+	public static <T> PageContent<T> queryByPagination(String sql,
+			IResultSetConverter<T> converter, PageInfo page) throws Exception {
+		return queryByPagination(sql, null, converter, page);
 	}
 	
 }
