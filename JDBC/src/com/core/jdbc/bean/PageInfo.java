@@ -47,7 +47,7 @@ public class PageInfo {
 		return this.currPage == this.pageSize;
 	}
 	
-	public JSONObject getPageInfo(){
+	public JSONObject toJSONObj(){
 		JSONObject jsonObj = new JSONObject();
 		jsonObj.put("currPage", this.currPage);
 		jsonObj.put("pageSize", this.pageSize);
