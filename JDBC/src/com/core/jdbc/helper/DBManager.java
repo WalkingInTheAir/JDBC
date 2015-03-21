@@ -374,7 +374,7 @@ public class DBManager {
 				totalRecords / page.getPageSize() + 1;
 		page.setTotalPage(totalPage);
 		sql += " LIMIT ?, ?";
-		if(page.getCurrPage() > totalPage){
+		if(page.getCurrPage() > totalPage && totalPage > 0){
 			page.setCurrPage(totalPage);
 		}
 		Object[] newParams = null;
