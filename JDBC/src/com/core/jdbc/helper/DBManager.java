@@ -275,9 +275,9 @@ public class DBManager {
 				t = converter.conver(rs);
 				break;
 			}
-			//System.out.println("******SQL LOG******" + sql);
+			System.out.println("******SQL LOG******" + sql);
 		} catch (SQLException e) {
-			System.out.println("******SQL LOG****** EXCEPTION");
+			System.out.println("******SQL LOG****** + sql with EXCEPTION " + sql);
 			t = null;
 			throw e;
 		} finally {
@@ -329,7 +329,7 @@ public class DBManager {
 			}
 			System.out.println("******SQL LOG******" + sql);
 		} catch (SQLException e) {
-			System.out.println("******SQL LOG****** EXCEPTION");
+			System.out.println("******SQL LOG****** + sql with EXCEPTION " + sql);
 			list = null;
 			throw e;
 		} finally {
