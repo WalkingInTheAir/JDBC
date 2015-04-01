@@ -143,7 +143,7 @@ public class DBManager {
 			conn.commit();
 			System.out.println("******SQL LOG******" + sql);
 		} catch (SQLException e) {
-			System.out.println("******SQL LOG****** ROLLBACK");
+			System.out.println("******SQL LOG****** ROLLBACK " + sql);
 			conn.rollback();
 			throw e;
 		} finally {
